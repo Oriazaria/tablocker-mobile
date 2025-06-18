@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tab Locker Remote - AzriaSolutions</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2196F3">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container { max-width: 400px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .status-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .control-button {
+            width: 100%;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .control-button.primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+        .control-button.danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+        .device-selector {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: white;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔒 Tab Locker Remote</h1>
+            <p>שליטה מרחוק בנעילת טאבים</p>
+        </div>
+
+        <div class="status-card">
+            <h3>📡 סטטוס חיבור</h3>
+            <p id="connection-status">מתחבר...</p>
+            <p id="device-count">מכשירים זמינים: 0</p>
+        </div>
+
+        <div class="status-card">
+            <h3>💻 בחירת מכשיר</h3>
+            <select class="device-selector" id="device-select">
+                <option value="">בחר מכשיר...</option>
+            </select>
+        </div>
+
+        <div class="status-card">
+            <h3>⚡ פעולות מהירות</h3>
+            <button class="control-button primary" id="lock-tabs-btn">🔒 נעל טאבים</button>
+            <button class="control-button danger" id="unlock-tabs-btn">🔓 בטל נעילה</button>
+            <button class="control-button" id="ping-btn">📶 בדוק חיבור</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -37,6 +37,14 @@
             margin-bottom: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
+            opacity: 0.7;
+        }
+        .control-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .control-button.enabled {
+            opacity: 1;
         }
         .control-button.primary {
             background: linear-gradient(135deg, #4CAF50, #45a049);
@@ -46,14 +54,87 @@
             background: linear-gradient(135deg, #f44336, #d32f2f);
             color: white;
         }
-        .device-selector {
+        .control-button.info {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+        .device-code-input {
             background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 10px;
             padding: 12px 16px;
             color: white;
             width: 100%;
             margin-bottom: 12px;
+            font-size: 18px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .device-code-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+            font-family: inherit;
+        }
+        .device-code-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .connect-btn {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        .connect-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+        .device-status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .device-status.connected {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+        .device-status.disconnected {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.5);
+        }
+        .response-area {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
+            line-height: 1.4;
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -66,22 +147,49 @@
 
         <div class="status-card">
             <h3>📡 סטטוס חיבור</h3>
-            <p id="connection-status">מתחבר...</p>
-            <p id="device-count">מכשירים זמינים: 0</p>
+            <p id="connection-status">מתחבר לשרת...</p>
         </div>
 
         <div class="status-card">
-            <h3>💻 בחירת מכשיר</h3>
-            <select class="device-selector" id="device-select">
-                <option value="">בחר מכשיר...</option>
-            </select>
+            <h3>🔑 התחבר למכשיר</h3>
+            <div class="instructions">
+                הזן את הקוד בן 6 הספרות שמוצג בתוסף Chrome שלך
+            </div>
+            <input 
+                type="text" 
+                class="device-code-input" 
+                id="device-code-input" 
+                placeholder="AB CD EF" 
+                maxlength="6"
+                pattern="[A-Fa-f0-9]{6}"
+            >
+            <button class="connect-btn" id="connect-btn">🔌 התחבר למכשיר</button>
+            
+            <div class="device-status disconnected" id="device-status">
+                ❌ לא מחובר למכשיר
+            </div>
         </div>
 
         <div class="status-card">
             <h3>⚡ פעולות מהירות</h3>
-            <button class="control-button primary" id="lock-tabs-btn">🔒 נעל טאבים</button>
-            <button class="control-button danger" id="unlock-tabs-btn">🔓 בטל נעילה</button>
-            <button class="control-button" id="ping-btn">📶 בדוק חיבור</button>
+            <button class="control-button primary" id="lock-tabs-btn" disabled>
+                🔒 נעל טאבים פתוחים
+            </button>
+            <button class="control-button danger" id="unlock-tabs-btn" disabled>
+                🔓 בטל את כל הנעילות
+            </button>
+            <button class="control-button info" id="ping-btn" disabled>
+                📶 בדוק חיבור למכשיר
+            </button>
+            
+            <div class="response-area" id="response-area" style="display: none;">
+                <div id="response-content">אין תגובות עדיין...</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🛡️ <strong>AzriaSolutions</strong> - פתרונות טכנולוגיים מתקדמים</p>
+            <p>📧 info@azriasolutions.com</p>
         </div>
     </div>
 

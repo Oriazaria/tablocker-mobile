@@ -45,20 +45,57 @@ class TabLockerRemote {
         document.getElementById('ping-btn').addEventListener('click', () => {
             this.sendCommand({ action: 'PING' });
         });
+
+        // כפתור הצגת טאבים נעולים
+        document.getElementById('show-locked-tabs-btn').addEventListener('click', () => {
+            this.sendCommand({ action: 'GET_LOCKED_TABS' });
+        });
+
+        // כפתור נעילה ידנית
+        document.getElementById('manual-lock-btn').addEventListener('click', () => {
+            this.showManualLockDialog();
+        });
     }
 
-    // בדיקת חיבור לשרת
+    // בדיקת חיבור לשרת - תיקון
     async checkServerConnection() {
         try {
-            const response = await fetch(`${this.apiUrl.replace('/api', '')}/health`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 שניות timeout
+            
+            const response = await fetch(`https://api.azriasolutions.com/health`, {
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.status === 'healthy') {
+                    document.getElementById('connection-status').innerHTML = '✅ מחובר לשרת';
+                    return true;
+                }
+            }
+            throw new Error('Server unhealthy');
+        } catch (error) {
+            console.warn('Server connection check failed:', error.name);
+            // לא נציג שגיאה - נדחה לבדיקה מאוחרת יותר
+            document.getElementById('connection-status').innerHTML = '⏳ בודק חיבור לשרת...';
+            
+            // נסה שוב אחרי 3 שניות
+            setTimeout(() => this.recheckServerConnection(), 3000);
+            return false;
+        }
+    }
+
+    async recheckServerConnection() {
+        try {
+            const response = await fetch(`https://api.azriasolutions.com/health`);
             if (response.ok) {
                 document.getElementById('connection-status').innerHTML = '✅ מחובר לשרת';
-            } else {
-                throw new Error('Server not responding');
             }
         } catch (error) {
-            document.getElementById('connection-status').innerHTML = '❌ שגיאת חיבור לשרת';
-            console.error('Server connection failed:', error);
+            document.getElementById('connection-status').innerHTML = '⚠️ חיבור לשרת לא יציב';
         }
     }
 
@@ -110,6 +147,9 @@ class TabLockerRemote {
                 this.updateConnectionButtons(true);
                 this.showResponse(`התחברות מוצלחת למכשיר ${code}`);
                 
+                // עדכן גם את סטטוס השרת
+                document.getElementById('connection-status').innerHTML = '✅ מחובר לשרת';
+                
                 // התחל לקבל תגובות
                 this.startResponsePolling();
                 
@@ -135,14 +175,16 @@ class TabLockerRemote {
 
     // עדכון כפתורי פעולות
     updateConnectionButtons(enabled) {
-        const buttons = ['lock-tabs-btn', 'unlock-tabs-btn', 'ping-btn'];
+        const buttons = ['lock-tabs-btn', 'unlock-tabs-btn', 'ping-btn', 'show-locked-tabs-btn', 'manual-lock-btn'];
         buttons.forEach(btnId => {
             const btn = document.getElementById(btnId);
-            btn.disabled = !enabled;
-            if (enabled) {
-                btn.classList.add('enabled');
-            } else {
-                btn.classList.remove('enabled');
+            if (btn) {
+                btn.disabled = !enabled;
+                if (enabled) {
+                    btn.classList.add('enabled');
+                } else {
+                    btn.classList.remove('enabled');
+                }
             }
         });
     }
@@ -186,6 +228,24 @@ class TabLockerRemote {
         }
     }
 
+    // דיאלוג נעילה ידנית
+    showManualLockDialog() {
+        const url = prompt('הזן URL או דומיין לנעילה:\n(לדוגמה: facebook.com או https://example.com)');
+        if (!url) return;
+
+        const password = prompt('הזן סיסמה לנעילה:');
+        if (!password) return;
+
+        const lockEntireDomain = confirm('לנעול את כל הדומיין?\n\nאישור = כל הדומיין\nביטול = רק URL ספציפי');
+
+        this.sendCommand({
+            action: 'MANUAL_LOCK',
+            url: url,
+            password: password,
+            lockDomain: lockEntireDomain
+        });
+    }
+
     // התחלת קבלת תגובות
     startResponsePolling() {
         if (this.responseInterval) {
@@ -206,6 +266,9 @@ class TabLockerRemote {
                             this.showResponse('🟢 המכשיר מגיב - החיבור תקין');
                         } else if (latest.status === 'success') {
                             this.showResponse(`✅ פעולה הושלמה בהצלחה`);
+                            if (latest.data) {
+                                this.showResponse(`📊 נתונים: ${JSON.stringify(latest.data)}`);
+                            }
                         } else if (latest.status === 'error') {
                             this.showResponse(`❌ שגיאה במכשיר: ${latest.message || 'לא ידוע'}`);
                         }

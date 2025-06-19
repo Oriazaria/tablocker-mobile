@@ -58,6 +58,14 @@
             background: linear-gradient(135deg, #2196F3, #1976D2);
             color: white;
         }
+        .control-button.secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+        }
+        .control-button.warning {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+        }
         .device-code-input {
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.3);
@@ -180,6 +188,16 @@
             </button>
             <button class="control-button info" id="ping-btn" disabled>
                 📶 בדוק חיבור למכשיר
+            </button>
+        </div>
+
+        <div class="status-card">
+            <h3>📋 ניהול מתקדם</h3>
+            <button class="control-button secondary" id="show-locked-tabs-btn" disabled>
+                📊 הצג טאבים נעולים
+            </button>
+            <button class="control-button warning" id="manual-lock-btn" disabled>
+                ⚙️ נעילה ידנית של דומיין
             </button>
             
             <div class="response-area" id="response-area" style="display: none;">

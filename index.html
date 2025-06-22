@@ -1,557 +1,370 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tab Locker Remote - AzriaSolutions</title>
-    <link rel="manifest" href="manifest.json">
-    <!-- צבע תכול בהיר -->
-    <meta name="theme-color" content="#6EC6FF">
+    <title>Welcome to Tab Locker - AzriaSolutions</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /* גרדיאנט תכלת → כחול */
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #6EC6FF 0%, #2196F3 100%);
             min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
-            margin: 0;
             padding: 20px;
         }
-        .container { max-width: 400px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .status-card {
+
+        .welcome-container {
+            max-width: 600px;
+            text-align: center;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 20px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .features {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 16px;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: left;
         }
-        .control-button {
-            width: 100%;
-            padding: 14px 20px;
-            border: none;
+
+        .feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-            cursor: pointer;
             transition: all 0.3s ease;
-            opacity: 0.7;
         }
-        .control-button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
+
+        .feature:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(10px);
         }
-        .control-button.enabled {
-            opacity: 1;
+
+        .feature-icon {
+            font-size: 32px;
+            margin-right: 20px;
+            width: 50px;
         }
-        .control-button.primary {
+
+        .feature-content h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .feature-content p {
+            font-size: 14px;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        .remote-section {
+            background: linear-gradient(135deg, #03A9F4 0%, #00BCD4 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .remote-section h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .device-code {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 32px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 8px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .app-link {
+            background: rgba(255, 255, 255, 0.9);
+            color: #1976D2;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            display: inline-block;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .app-link:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .step {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .step:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .step-number {
+            background: rgba(255, 255, 255, 0.2);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0 auto 15px auto;
+        }
+
+        .get-started {
             background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
-        }
-        .control-button.danger {
-            background: linear-gradient(135deg, #f44336, #d32f2f);
-            color: white;
-        }
-        .control-button.info {
-            background: linear-gradient(135deg, #2196F3, #1976D2);
-            color: white;
-        }
-        .control-button.secondary {
-            background: linear-gradient(135deg, #6c757d, #495057);
-            color: white;
-        }
-        .control-button.warning {
-            background: linear-gradient(135deg, #FF9800, #F57C00);
-            color: white;
-        }
-        .device-code-input {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            padding: 12px 16px;
-            color: white;
-            width: 100%;
-            margin-bottom: 12px;
-            font-size: 18px;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 2px;
-            text-align: center;
-            text-transform: uppercase;
-        }
-        .device-code-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-            font-family: inherit;
-        }
-        .device-code-input:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.6);
-            background: rgba(255, 255, 255, 0.15);
-        }
-        .connect-btn {
-            background: linear-gradient(135deg, #FF9800, #F57C00);
-            color: white;
-            width: 100%;
-            padding: 12px;
+            padding: 15px 40px;
             border: none;
-            border-radius: 10px;
+            border-radius: 50px;
+            font-size: 18px;
             font-weight: 600;
             cursor: pointer;
-            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            margin: 30px 10px;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .get-started:hover {
+            background: linear-gradient(135deg, #45a049, #4CAF50);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 30px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
             transition: all 0.3s ease;
         }
-        .connect-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
-        .device-status {
-            text-align: center;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        .device-status.connected {
-            background: rgba(76, 175, 80, 0.2);
-            border: 1px solid rgba(76, 175, 80, 0.5);
-        }
-        .device-status.disconnected {
-            background: rgba(244, 67, 54, 0.2);
-            border: 1px solid rgba(244, 67, 54, 0.5);
-        }
-        .device-status.connecting {
-            background: rgba(255, 193, 7, 0.2);
-            border: 1px solid rgba(255, 193, 7, 0.5);
-        }
-        .response-area {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            padding: 12px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            max-height: 150px;
-            overflow-y: auto;
-            margin-top: 10px;
-        }
+
         .footer {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 12px;
+            margin-top: 40px;
             opacity: 0.8;
+            font-size: 14px;
         }
-        .instructions {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 13px;
-            line-height: 1.4;
-            margin-bottom: 15px;
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🔒 Tab Locker Remote</h1>
-            <p>שליטה מרחוק בנעילת טאבים</p>
-        </div>
+    <div class="welcome-container">
+        <div class="logo">🔐</div>
+        <h1>Welcome to Tab Locker</h1>
+        <p class="subtitle">Professional Tab Protection & Remote Control</p>
 
-        <div class="status-card">
-            <h3>📡 סטטוס חיבור</h3>
-            <p id="connection-status">מתחבר לשרת...</p>
-        </div>
-
-        <div class="status-card">
-            <h3>🔑 התחבר למכשיר</h3>
-            <div class="instructions">
-                הזן את הקוד בן 6 הספרות שמוצג בתוסף Chrome שלך
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-content">
+                    <h3>Password Protection</h3>
+                    <p>Lock any website with a secure password to prevent distractions</p>
+                </div>
             </div>
-            <input 
-                type="text" 
-                class="device-code-input" 
-                id="device-code-input" 
-                placeholder="A48324" 
-                maxlength="6"
-                pattern="[A-Fa-f0-9]{6}"
-            >
-            <button class="connect-btn" id="connect-btn">🔌 התחבר למכשיר</button>
+            <div class="feature">
+                <div class="feature-icon">⏰</div>
+                <div class="feature-content">
+                    <h3>Auto-Lock Timer</h3>
+                    <p>Set automatic locks after periods of inactivity</p>
+                </div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔑</div>
+                <div class="feature-content">
+                    <h3>Recovery Options</h3>
+                    <p>Set security questions for password recovery</p>
+                </div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📱</div>
+                <div class="feature-content">
+                    <h3>Mobile Remote Control</h3>
+                    <p>Control your browser locks from your mobile device</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="remote-section">
+            <h2>📱 Mobile Remote Control</h2>
+            <p style="font-size: 16px; margin-bottom: 20px;">
+                Control your tab locks from anywhere using your mobile device!
+            </p>
             
-            <div class="device-status disconnected" id="device-status">
-                ❌ לא מחובר למכשיר
+            <div class="device-code" id="device-code">
+                Loading...
             </div>
-        </div>
-
-        <div class="status-card">
-            <h3>⚡ פעולות מהירות</h3>
-            <button class="control-button primary" id="lock-tabs-btn" disabled>
-                🔒 נעל טאבים פתוחים
-            </button>
-            <button class="control-button danger" id="unlock-tabs-btn" disabled>
-                🔓 בטל את כל הנעילות
-            </button>
-            <button class="control-button info" id="ping-btn" disabled>
-                📶 בדוק חיבור למכשיר
-            </button>
-        </div>
-
-        <div class="status-card">
-            <h3>📋 ניהול מתקדם</h3>
-            <button class="control-button secondary" id="show-locked-tabs-btn" disabled>
-                📊 הצג טאבים נעולים
-            </button>
-            <button class="control-button warning" id="manual-lock-btn" disabled>
-                ⚙️ נעילה ידנית של דומיין
-            </button>
             
-            <div class="response-area" id="response-area" style="display: none;">
-                <div id="response-content">אין תגובות עדיין...</div>
+            <p style="font-size: 14px; margin-bottom: 15px;">
+                Use this code to connect from your mobile device:
+            </p>
+            
+            <a href="https://remote.azriasolutions.com" target="_blank" class="app-link">
+                🌐 Open Mobile App
+            </a>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h4>Open Mobile App</h4>
+                    <p>Visit the link above on your phone</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h4>Enter Code</h4>
+                    <p>Type your device code shown above</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h4>Remote Control</h4>
+                    <p>Lock/unlock tabs from your phone!</p>
+                </div>
             </div>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="get-started" onclick="closeWelcome()">
+                🚀 Get Started
+            </button>
+            <button class="close-btn" onclick="closeWelcome()">
+                Maybe Later
+            </button>
         </div>
 
         <div class="footer">
-            <p>🛡️ <strong>AzriaSolutions</strong> - פתרונות טכנולוגיים מתקדמים</p>
-            <p>📧 info@azriasolutions.com</p>
+            <p>🛡️ <strong>AzriaSolutions</strong> - Advanced Technology Solutions</p>
+            <p>For support: <a href="mailto:info@azriasolutions.com">info@azriasolutions.com</a></p>
         </div>
     </div>
 
     <script>
-class TabLockerRemote {
-    constructor() {
-        this.apiUrl = 'https://api.azriasolutions.com/api';
-        this.connectedDevice = null;
-        this.deviceCode = null;
-        this.isConnected = false;
-        this.savedCode = null;
-        this.initializeApp();
-    }
-
-    async initializeApp() {
-        this.setupEventListeners();
-        await this.checkServerConnection();
-    }
-
-    setupEventListeners() {
-        // כפתור התחברות
-        document.getElementById('connect-btn').addEventListener('click', () => {
-            this.connectToDevice();
-        });
-
-        // שדה קוד - התחבר באנטר
-        document.getElementById('device-code-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.connectToDevice();
-            }
-        });
-
-        // פורמט קוד תוך כדי הקלדה
-        document.getElementById('device-code-input').addEventListener('input', (e) => {
-            let value = e.target.value.toUpperCase().replace(/[^A-F0-9]/g, '');
-            if (value.length > 6) value = value.substr(0, 6);
-            e.target.value = value;
-        });
-
-        // כפתורי פעולות
-        document.getElementById('lock-tabs-btn').addEventListener('click', () => {
-            this.sendCommand({ action: 'LOCK_CURRENT_TABS' });
-        });
-
-        document.getElementById('unlock-tabs-btn').addEventListener('click', () => {
-            this.sendCommand({ action: 'UNLOCK_ALL_TABS' });
-        });
-
-        document.getElementById('ping-btn').addEventListener('click', () => {
-            this.sendCommand({ action: 'PING' });
-        });
-
-        // כפתור הצגת טאבים נעולים
-        document.getElementById('show-locked-tabs-btn').addEventListener('click', () => {
-            this.sendCommand({ action: 'GET_LOCKED_TABS' });
-        });
-
-        // כפתור נעילה ידנית
-        document.getElementById('manual-lock-btn').addEventListener('click', () => {
-            this.showManualLockDialog();
-        });
-    }
-
-    // בדיקת חיבור לשרת
-    async checkServerConnection() {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
-            
-            const response = await fetch(`https://api.azriasolutions.com/health`, {
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            if (response.ok) {
-                const data = await response.json();
-                if (data.status === 'healthy') {
-                    document.getElementById('connection-status').innerHTML = '✅ מחובר לשרת';
-                    return true;
-                }
-            }
-            throw new Error('Server unhealthy');
-        } catch (error) {
-            console.warn('Server connection check failed:', error.name);
-            document.getElementById('connection-status').innerHTML = '⏳ בודק חיבור לשרת...';
-            setTimeout(() => this.recheckServerConnection(), 3000);
-            return false;
-        }
-    }
-
-    async recheckServerConnection() {
-        try {
-            const response = await fetch(`https://api.azriasolutions.com/health`);
-            if (response.ok) {
-                document.getElementById('connection-status').innerHTML = '✅ מחובר לשרת';
-            }
-        } catch (error) {
-            document.getElementById('connection-status').innerHTML = '⚠️ חיבור לשרת לא יציב';
-        }
-    }
-
-    saveCode(code) {
-        this.savedCode = code;
-    }
-
-    // התחברות למכשיר
-    async connectToDevice() {
-        const codeInput = document.getElementById('device-code-input');
-        const code = codeInput.value.trim().toUpperCase();
-        
-        if (!code || code.length !== 6) {
-            alert('יש להזין קוד בן 6 ספרות (A-F, 0-9)');
-            codeInput.focus();
-            return;
-        }
-
-        this.updateDeviceStatus('מחפש מכשיר...', 'connecting');
-        this.updateConnectionButtons(false);
-
-        try {
-            const response = await fetch(`${this.apiUrl}/find-device`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ deviceCode: code })
-            });
-
-            const result = await response.json();
-            console.log('🔍 Find device response:', result);
-
-            if (response.ok && result.found) {
-                this.connectedDevice = result.device;
-                this.deviceCode = code;
-                this.isConnected = true;
-                this.saveCode(code);
-                
-                this.updateDeviceStatus(`✅ מחובר למכשיר ${code}`, 'connected');
-                this.updateConnectionButtons(true);
-                this.showResponse(`התחברות מוצלחת למכשיר ${code}`);
-                
-                document.getElementById('connection-status').innerHTML = '✅ מחובר לשרת';
-                this.startResponsePolling();
-                
-            } else {
-                this.updateDeviceStatus('❌ מכשיר לא נמצא או לא מחובר', 'disconnected');
-                alert('מכשיר לא נמצא. ודא שהתוסף פעיל ושהקוד נכון.');
-            }
-
-        } catch (error) {
-            console.error('Connection error:', error);
-            this.updateDeviceStatus('❌ שגיאת חיבור', 'disconnected');
-            alert('שגיאה בחיבור לשרת');
-        }
-    }
-
-    updateDeviceStatus(message, status) {
-        const statusElement = document.getElementById('device-status');
-        statusElement.textContent = message;
-        statusElement.className = `device-status ${status}`;
-    }
-
-    updateConnectionButtons(enabled) {
-        const buttons = ['lock-tabs-btn', 'unlock-tabs-btn', 'ping-btn', 'show-locked-tabs-btn', 'manual-lock-btn'];
-        buttons.forEach(btnId => {
-            const btn = document.getElementById(btnId);
-            if (btn) {
-                btn.disabled = !enabled;
-                if (enabled) {
-                    btn.classList.add('enabled');
-                } else {
-                    btn.classList.remove('enabled');
-                }
-            }
-        });
-    }
-
-    // שליחת פקודה
-    async sendCommand(command) {
-        if (!this.isConnected || !this.deviceCode) {
-            alert('יש להתחבר למכשיר תחילה');
-            return;
-        }
-
-        try {
-            console.log('📤 Sending command:', command);
-            this.showResponse(`שולח פקודה: ${command.action}...`);
-
-            const response = await fetch(`${this.apiUrl}/send-command`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    deviceCode: this.deviceCode,
-                    command: command
-                })
-            });
-
-            const result = await response.json();
-            console.log('📥 Command response:', result);
-
-            if (response.ok && result.success) {
-                this.showResponse(`✅ פקודה נשלחה: ${command.action}`);
-            } else {
-                this.showResponse(`❌ שגיאה: ${result.error || 'לא ניתן לשלוח פקודה'}`);
-                
-                if (response.status === 404) {
-                    this.disconnect();
-                    alert('המכשיר לא מחובר. יש להתחבר מחדש.');
-                }
-            }
-
-        } catch (error) {
-            console.error('Command error:', error);
-            this.showResponse(`❌ שגיאת שליחה: ${error.message}`);
-        }
-    }
-
-    showManualLockDialog() {
-        const url = prompt('הזן URL או דומיין לנעילה:\n(לדוגמה: facebook.com או https://example.com)');
-        if (!url) return;
-
-        const password = prompt('הזן סיסמה לנעילה:');
-        if (!password) return;
-
-        const lockEntireDomain = confirm('לנעול את כל הדומיין?\n\nאישור = כל הדומיין\nביטול = רק URL ספציפי');
-
-        this.sendCommand({
-            action: 'MANUAL_LOCK',
-            url: url,
-            password: password,
-            lockDomain: lockEntireDomain
-        });
-    }
-
-    // התחלת קבלת תגובות
-    startResponsePolling() {
-        if (this.responseInterval) {
-            clearInterval(this.responseInterval);
-        }
-
-        this.responseInterval = setInterval(async () => {
-            if (!this.isConnected || !this.deviceCode) return;
-
+        // טען את קוד המכשיר
+        async function loadDeviceCode() {
             try {
-                const response = await fetch(`${this.apiUrl}/responses/${this.deviceCode}`);
-                if (response.ok) {
-                    const responses = await response.json();
-                    if (responses.length > 0) {
-                        const latest = responses[0];
-                        console.log('📨 Latest response:', latest);
-                        
-                        if (latest.status === 'pong') {
-                            this.showResponse('🟢 המכשיר מגיב - החיבור תקין');
-                        } else if (latest.status === 'success') {
-                            this.showResponse(`✅ פעולה הושלמה בהצלחה`);
-                            if (latest.data) {
-                                if (latest.data.action === 'locked_tabs_info') {
-                                    console.log('📋 Showing locked tabs:', latest.data.lockedTabs);
-                                    this.showSimpleLockedTabs(latest.data.lockedTabs);
-                                } else if (latest.data.action === 'current_tabs') {
-                                    this.showResponse(`📱 נמצאו ${latest.data.count} טאבים פתוחים`);
-                                } else {
-                                    this.showResponse(`📊 ${latest.data.action}: ${latest.data.count || 'הושלם'}`);
-                                }
-                            }
-                        } else if (latest.status === 'error') {
-                            this.showResponse(`❌ שגיאה במכשיר: ${latest.message || 'לא ידוע'}`);
-                        }
-                    }
+                const result = await new Promise((resolve) => {
+                    chrome.storage.local.get(['remoteDeviceId'], resolve);
+                });
+                
+                if (result.remoteDeviceId) {
+                    const code = result.remoteDeviceId.slice(-6).toUpperCase();
+                    const formattedCode = code.match(/.{1,2}/g).join(' ');
+                    document.getElementById('device-code').textContent = formattedCode;
+                } else {
+                    document.getElementById('device-code').textContent = 'Not Available';
                 }
             } catch (error) {
-                console.warn('Response polling error:', error);
+                document.getElementById('device-code').textContent = 'Error Loading';
             }
-        }, 3000);
-    }
-
-    // הצגה פשוטה של טאבים נעולים
-    showSimpleLockedTabs(lockedTabs) {
-        if (!lockedTabs || lockedTabs.length === 0) {
-            alert('אין טאבים נעולים כרגע');
-            return;
         }
 
-        let message = `🔒 נמצאו ${lockedTabs.length} טאבים נעולים:\n\n`;
-        lockedTabs.forEach((tab, index) => {
-            const displayName = tab.displayName || tab.key;
-            const shortName = displayName.length > 30 ? displayName.substring(0, 30) + '...' : displayName;
-            message += `${index + 1}. ${shortName}\n`;
-        });
-
-        message += `\nרוצה לבטל את כל הנעילות?`;
-        
-        if (confirm(message)) {
-            this.sendCommand({ action: 'UNLOCK_ALL_TABS' });
+        function closeWelcome() {
+            window.close();
         }
-    }
 
-    showResponse(message) {
-        const responseArea = document.getElementById('response-area');
-        const responseContent = document.getElementById('response-content');
-        
-        const timestamp = new Date().toLocaleTimeString('he-IL');
-        const newMessage = `[${timestamp}] ${message}`;
-        
-        responseArea.style.display = 'block';
-        
-        const currentContent = responseContent.textContent;
-        if (currentContent === 'אין תגובות עדיין...') {
-            responseContent.textContent = newMessage;
-        } else {
-            responseContent.textContent = newMessage + '\n' + currentContent;
-        }
-        
-        const lines = responseContent.textContent.split('\n');
-        if (lines.length > 10) {
-            responseContent.textContent = lines.slice(0, 10).join('\n');
-        }
-    }
-
-    disconnect() {
-        this.isConnected = false;
-        this.connectedDevice = null;
-        this.deviceCode = null;
-        
-        if (this.responseInterval) {
-            clearInterval(this.responseInterval);
-            this.responseInterval = null;
-        }
-        
-        this.updateDeviceStatus('❌ לא מחובר למכשיר', 'disconnected');
-        this.updateConnectionButtons(false);
-        
-        document.getElementById('device-code-input').value = '';
-        this.savedCode = null;
-    }
-}
-
-// אתחול האפליקציה
-document.addEventListener('DOMContentLoaded', () => {
-    window.tabLockerRemote = new TabLockerRemote();
-});
+        // טען את הקוד כשהדף נטען
+        document.addEventListener('DOMContentLoaded', loadDeviceCode);
     </script>
 </body>
 </html>

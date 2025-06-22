@@ -1,557 +1,91 @@
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tab Locker Remote - AzriaSolutions</title>
-    <link rel="manifest" href="manifest.json">
-    <!-- צבע תכול בהיר -->
-    <meta name="theme-color" content="#6EC6FF">
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /* גרדיאנט תכלת → כחול */
-            background: linear-gradient(135deg, #6EC6FF 0%, #2196F3 100%);
-            min-height: 100vh;
-            color: white;
-            margin: 0;
-            padding: 20px;
-        }
-        .container { max-width: 400px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .status-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .control-button {
-            width: 100%;
-            padding: 14px 20px;
-            border: none;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            opacity: 0.7;
-        }
-        .control-button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .control-button.enabled {
-            opacity: 1;
-        }
-        .control-button.primary {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
-        }
-        .control-button.danger {
-            background: linear-gradient(135deg, #f44336, #d32f2f);
-            color: white;
-        }
-        .control-button.info {
-            background: linear-gradient(135deg, #2196F3, #1976D2);
-            color: white;
-        }
-        .control-button.secondary {
-            background: linear-gradient(135deg, #6c757d, #495057);
-            color: white;
-        }
-        .control-button.warning {
-            background: linear-gradient(135deg, #FF9800, #F57C00);
-            color: white;
-        }
-        .device-code-input {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            padding: 12px 16px;
-            color: white;
-            width: 100%;
-            margin-bottom: 12px;
-            font-size: 18px;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 2px;
-            text-align: center;
-            text-transform: uppercase;
-        }
-        .device-code-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-            font-family: inherit;
-        }
-        .device-code-input:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.6);
-            background: rgba(255, 255, 255, 0.15);
-        }
-        .connect-btn {
-            background: linear-gradient(135deg, #FF9800, #F57C00);
-            color: white;
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
-        }
-        .connect-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
-        }
-        .device-status {
-            text-align: center;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        .device-status.connected {
-            background: rgba(76, 175, 80, 0.2);
-            border: 1px solid rgba(76, 175, 80, 0.5);
-        }
-        .device-status.disconnected {
-            background: rgba(244, 67, 54, 0.2);
-            border: 1px solid rgba(244, 67, 54, 0.5);
-        }
-        .device-status.connecting {
-            background: rgba(255, 193, 7, 0.2);
-            border: 1px solid rgba(255, 193, 7, 0.5);
-        }
-        .response-area {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            padding: 12px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            max-height: 150px;
-            overflow-y: auto;
-            margin-top: 10px;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 12px;
-            opacity: 0.8;
-        }
-        .instructions {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 13px;
-            line-height: 1.4;
-            margin-bottom: 15px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🔒 Tab Locker Remote</h1>
-            <p>שליטה מרחוק בנעילת טאבים</p>
-        </div>
+// החלף את הפונקציה showSimpleLockedTabs באפליקציית המובייל עם זו:
 
-        <div class="status-card">
-            <h3>📡 סטטוס חיבור</h3>
-            <p id="connection-status">מתחבר לשרת...</p>
-        </div>
-
-        <div class="status-card">
-            <h3>🔑 התחבר למכשיר</h3>
-            <div class="instructions">
-                הזן את הקוד בן 6 הספרות שמוצג בתוסף Chrome שלך
-            </div>
-            <input 
-                type="text" 
-                class="device-code-input" 
-                id="device-code-input" 
-                placeholder="A48324" 
-                maxlength="6"
-                pattern="[A-Fa-f0-9]{6}"
-            >
-            <button class="connect-btn" id="connect-btn">🔌 התחבר למכשיר</button>
-            
-            <div class="device-status disconnected" id="device-status">
-                ❌ לא מחובר למכשיר
-            </div>
-        </div>
-
-        <div class="status-card">
-            <h3>⚡ פעולות מהירות</h3>
-            <button class="control-button primary" id="lock-tabs-btn" disabled>
-                🔒 נעל טאבים פתוחים
-            </button>
-            <button class="control-button danger" id="unlock-tabs-btn" disabled>
-                🔓 בטל את כל הנעילות
-            </button>
-            <button class="control-button info" id="ping-btn" disabled>
-                📶 בדוק חיבור למכשיר
-            </button>
-        </div>
-
-        <div class="status-card">
-            <h3>📋 ניהול מתקדם</h3>
-            <button class="control-button secondary" id="show-locked-tabs-btn" disabled>
-                📊 הצג טאבים נעולים
-            </button>
-            <button class="control-button warning" id="manual-lock-btn" disabled>
-                ⚙️ נעילה ידנית של דומיין
-            </button>
-            
-            <div class="response-area" id="response-area" style="display: none;">
-                <div id="response-content">אין תגובות עדיין...</div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>🛡️ <strong>AzriaSolutions</strong> - פתרונות טכנולוגיים מתקדמים</p>
-            <p>📧 info@azriasolutions.com</p>
-        </div>
-    </div>
-
-    <script>
-class TabLockerRemote {
-    constructor() {
-        this.apiUrl = 'https://api.azriasolutions.com/api';
-        this.connectedDevice = null;
-        this.deviceCode = null;
-        this.isConnected = false;
-        this.savedCode = null;
-        this.initializeApp();
-    }
-
-    async initializeApp() {
-        this.setupEventListeners();
-        await this.checkServerConnection();
-    }
-
-    setupEventListeners() {
-        // כפתור התחברות
-        document.getElementById('connect-btn').addEventListener('click', () => {
-            this.connectToDevice();
-        });
-
-        // שדה קוד - התחבר באנטר
-        document.getElementById('device-code-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.connectToDevice();
-            }
-        });
-
-        // פורמט קוד תוך כדי הקלדה
-        document.getElementById('device-code-input').addEventListener('input', (e) => {
-            let value = e.target.value.toUpperCase().replace(/[^A-F0-9]/g, '');
-            if (value.length > 6) value = value.substr(0, 6);
-            e.target.value = value;
-        });
-
-        // כפתורי פעולות
-        document.getElementById('lock-tabs-btn').addEventListener('click', () => {
-            this.sendCommand({ action: 'LOCK_CURRENT_TABS' });
-        });
-
-        document.getElementById('unlock-tabs-btn').addEventListener('click', () => {
-            this.sendCommand({ action: 'UNLOCK_ALL_TABS' });
-        });
-
-        document.getElementById('ping-btn').addEventListener('click', () => {
-            this.sendCommand({ action: 'PING' });
-        });
-
-        // כפתור הצגת טאבים נעולים
-        document.getElementById('show-locked-tabs-btn').addEventListener('click', () => {
-            this.sendCommand({ action: 'GET_LOCKED_TABS' });
-        });
-
-        // כפתור נעילה ידנית
-        document.getElementById('manual-lock-btn').addEventListener('click', () => {
+// הצגה פשוטה של טאבים נעולים
+showSimpleLockedTabs(lockedTabs) {
+    console.log('📋 Showing locked tabs:', lockedTabs);
+    
+    if (!lockedTabs || lockedTabs.length === 0) {
+        // הצג הודעה באזור התגובות במקום alert
+        this.showResponse('📭 אין טאבים נעולים כרגע');
+        
+        // הצע לנעול טאב חדש
+        const lockNow = confirm('אין טאבים נעולים כרגע.\nהאם תרצה לנעול דומיין חדש?');
+        if (lockNow) {
             this.showManualLockDialog();
-        });
+        }
+        return;
     }
 
-    // בדיקת חיבור לשרת
-    async checkServerConnection() {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
-            
-            const response = await fetch(`https://api.azriasolutions.com/health`, {
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            if (response.ok) {
-                const data = await response.json();
-                if (data.status === 'healthy') {
-                    document.getElementById('connection-status').innerHTML = '✅ מחובר לשרת';
-                    return true;
+    // בנה הודעה מפורטת
+    let message = `🔒 נמצאו ${lockedTabs.length} טאבים נעולים:\n\n`;
+    
+    lockedTabs.forEach((tab, index) => {
+        const displayName = tab.displayName || tab.key || 'Unknown';
+        const type = tab.type === 'domain' ? '🌐 דומיין' : '📄 עמוד';
+        const hasRecovery = tab.hasRecovery ? '✅' : '❌';
+        const autoLock = tab.autoLock ? '⏰' : '🔒';
+        
+        // קצר את השם אם ארוך מדי
+        const shortName = displayName.length > 40 ? 
+            displayName.substring(0, 37) + '...' : displayName;
+        
+        message += `${index + 1}. ${type} ${shortName}\n`;
+        message += `   ${autoLock} נעילה אוטומטית: ${tab.autoLock ? 'כן' : 'לא'}\n`;
+        message += `   ${hasRecovery} שאלת שחזור: ${tab.hasRecovery ? 'כן' : 'לא'}\n\n`;
+    });
+
+    // הצג באזור התגובות
+    this.showResponse('📋 רשימת טאבים נעולים:');
+    
+    // פצל את ההודעה לשורות והצג כל אחת
+    message.split('\n').forEach(line => {
+        if (line.trim()) {
+            this.showResponse(line);
+        }
+    });
+    
+    // הצע אפשרויות פעולה
+    setTimeout(() => {
+        const action = prompt(
+            'בחר פעולה:\n\n' +
+            '1 - בטל את כל הנעילות\n' +
+            '2 - נעל דומיין חדש\n' +
+            '3 - ביטול',
+            '3'
+        );
+        
+        switch(action) {
+            case '1':
+                if (confirm('האם אתה בטוח שברצונך לבטל את כל הנעילות?')) {
+                    this.sendCommand({ action: 'UNLOCK_ALL_TABS' });
                 }
-            }
-            throw new Error('Server unhealthy');
-        } catch (error) {
-            console.warn('Server connection check failed:', error.name);
-            document.getElementById('connection-status').innerHTML = '⏳ בודק חיבור לשרת...';
-            setTimeout(() => this.recheckServerConnection(), 3000);
-            return false;
+                break;
+            case '2':
+                this.showManualLockDialog();
+                break;
+            default:
+                // ביטול - לא עושים כלום
+                break;
         }
-    }
-
-    async recheckServerConnection() {
-        try {
-            const response = await fetch(`https://api.azriasolutions.com/health`);
-            if (response.ok) {
-                document.getElementById('connection-status').innerHTML = '✅ מחובר לשרת';
-            }
-        } catch (error) {
-            document.getElementById('connection-status').innerHTML = '⚠️ חיבור לשרת לא יציב';
-        }
-    }
-
-    saveCode(code) {
-        this.savedCode = code;
-    }
-
-    // התחברות למכשיר
-    async connectToDevice() {
-        const codeInput = document.getElementById('device-code-input');
-        const code = codeInput.value.trim().toUpperCase();
-        
-        if (!code || code.length !== 6) {
-            alert('יש להזין קוד בן 6 ספרות (A-F, 0-9)');
-            codeInput.focus();
-            return;
-        }
-
-        this.updateDeviceStatus('מחפש מכשיר...', 'connecting');
-        this.updateConnectionButtons(false);
-
-        try {
-            const response = await fetch(`${this.apiUrl}/find-device`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ deviceCode: code })
-            });
-
-            const result = await response.json();
-            console.log('🔍 Find device response:', result);
-
-            if (response.ok && result.found) {
-                this.connectedDevice = result.device;
-                this.deviceCode = code;
-                this.isConnected = true;
-                this.saveCode(code);
-                
-                this.updateDeviceStatus(`✅ מחובר למכשיר ${code}`, 'connected');
-                this.updateConnectionButtons(true);
-                this.showResponse(`התחברות מוצלחת למכשיר ${code}`);
-                
-                document.getElementById('connection-status').innerHTML = '✅ מחובר לשרת';
-                this.startResponsePolling();
-                
-            } else {
-                this.updateDeviceStatus('❌ מכשיר לא נמצא או לא מחובר', 'disconnected');
-                alert('מכשיר לא נמצא. ודא שהתוסף פעיל ושהקוד נכון.');
-            }
-
-        } catch (error) {
-            console.error('Connection error:', error);
-            this.updateDeviceStatus('❌ שגיאת חיבור', 'disconnected');
-            alert('שגיאה בחיבור לשרת');
-        }
-    }
-
-    updateDeviceStatus(message, status) {
-        const statusElement = document.getElementById('device-status');
-        statusElement.textContent = message;
-        statusElement.className = `device-status ${status}`;
-    }
-
-    updateConnectionButtons(enabled) {
-        const buttons = ['lock-tabs-btn', 'unlock-tabs-btn', 'ping-btn', 'show-locked-tabs-btn', 'manual-lock-btn'];
-        buttons.forEach(btnId => {
-            const btn = document.getElementById(btnId);
-            if (btn) {
-                btn.disabled = !enabled;
-                if (enabled) {
-                    btn.classList.add('enabled');
-                } else {
-                    btn.classList.remove('enabled');
-                }
-            }
-        });
-    }
-
-    // שליחת פקודה
-    async sendCommand(command) {
-        if (!this.isConnected || !this.deviceCode) {
-            alert('יש להתחבר למכשיר תחילה');
-            return;
-        }
-
-        try {
-            console.log('📤 Sending command:', command);
-            this.showResponse(`שולח פקודה: ${command.action}...`);
-
-            const response = await fetch(`${this.apiUrl}/send-command`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    deviceCode: this.deviceCode,
-                    command: command
-                })
-            });
-
-            const result = await response.json();
-            console.log('📥 Command response:', result);
-
-            if (response.ok && result.success) {
-                this.showResponse(`✅ פקודה נשלחה: ${command.action}`);
-            } else {
-                this.showResponse(`❌ שגיאה: ${result.error || 'לא ניתן לשלוח פקודה'}`);
-                
-                if (response.status === 404) {
-                    this.disconnect();
-                    alert('המכשיר לא מחובר. יש להתחבר מחדש.');
-                }
-            }
-
-        } catch (error) {
-            console.error('Command error:', error);
-            this.showResponse(`❌ שגיאת שליחה: ${error.message}`);
-        }
-    }
-
-    showManualLockDialog() {
-        const url = prompt('הזן URL או דומיין לנעילה:\n(לדוגמה: facebook.com או https://example.com)');
-        if (!url) return;
-
-        const password = prompt('הזן סיסמה לנעילה:');
-        if (!password) return;
-
-        const lockEntireDomain = confirm('לנעול את כל הדומיין?\n\nאישור = כל הדומיין\nביטול = רק URL ספציפי');
-
-        this.sendCommand({
-            action: 'MANUAL_LOCK',
-            url: url,
-            password: password,
-            lockDomain: lockEntireDomain
-        });
-    }
-
-    // התחלת קבלת תגובות
-    startResponsePolling() {
-        if (this.responseInterval) {
-            clearInterval(this.responseInterval);
-        }
-
-        this.responseInterval = setInterval(async () => {
-            if (!this.isConnected || !this.deviceCode) return;
-
-            try {
-                const response = await fetch(`${this.apiUrl}/responses/${this.deviceCode}`);
-                if (response.ok) {
-                    const responses = await response.json();
-                    if (responses.length > 0) {
-                        const latest = responses[0];
-                        console.log('📨 Latest response:', latest);
-                        
-                        if (latest.status === 'pong') {
-                            this.showResponse('🟢 המכשיר מגיב - החיבור תקין');
-                        } else if (latest.status === 'success') {
-                            this.showResponse(`✅ פעולה הושלמה בהצלחה`);
-                            if (latest.data) {
-                                if (latest.data.action === 'locked_tabs_info') {
-                                    console.log('📋 Showing locked tabs:', latest.data.lockedTabs);
-                                    this.showSimpleLockedTabs(latest.data.lockedTabs);
-                                } else if (latest.data.action === 'current_tabs') {
-                                    this.showResponse(`📱 נמצאו ${latest.data.count} טאבים פתוחים`);
-                                } else {
-                                    this.showResponse(`📊 ${latest.data.action}: ${latest.data.count || 'הושלם'}`);
-                                }
-                            }
-                        } else if (latest.status === 'error') {
-                            this.showResponse(`❌ שגיאה במכשיר: ${latest.message || 'לא ידוע'}`);
-                        }
-                    }
-                }
-            } catch (error) {
-                console.warn('Response polling error:', error);
-            }
-        }, 3000);
-    }
-
-    // הצגה פשוטה של טאבים נעולים
-    showSimpleLockedTabs(lockedTabs) {
-        if (!lockedTabs || lockedTabs.length === 0) {
-            alert('אין טאבים נעולים כרגע');
-            return;
-        }
-
-        let message = `🔒 נמצאו ${lockedTabs.length} טאבים נעולים:\n\n`;
-        lockedTabs.forEach((tab, index) => {
-            const displayName = tab.displayName || tab.key;
-            const shortName = displayName.length > 30 ? displayName.substring(0, 30) + '...' : displayName;
-            message += `${index + 1}. ${shortName}\n`;
-        });
-
-        message += `\nרוצה לבטל את כל הנעילות?`;
-        
-        if (confirm(message)) {
-            this.sendCommand({ action: 'UNLOCK_ALL_TABS' });
-        }
-    }
-
-    showResponse(message) {
-        const responseArea = document.getElementById('response-area');
-        const responseContent = document.getElementById('response-content');
-        
-        const timestamp = new Date().toLocaleTimeString('he-IL');
-        const newMessage = `[${timestamp}] ${message}`;
-        
-        responseArea.style.display = 'block';
-        
-        const currentContent = responseContent.textContent;
-        if (currentContent === 'אין תגובות עדיין...') {
-            responseContent.textContent = newMessage;
-        } else {
-            responseContent.textContent = newMessage + '\n' + currentContent;
-        }
-        
-        const lines = responseContent.textContent.split('\n');
-        if (lines.length > 10) {
-            responseContent.textContent = lines.slice(0, 10).join('\n');
-        }
-    }
-
-    disconnect() {
-        this.isConnected = false;
-        this.connectedDevice = null;
-        this.deviceCode = null;
-        
-        if (this.responseInterval) {
-            clearInterval(this.responseInterval);
-            this.responseInterval = null;
-        }
-        
-        this.updateDeviceStatus('❌ לא מחובר למכשיר', 'disconnected');
-        this.updateConnectionButtons(false);
-        
-        document.getElementById('device-code-input').value = '';
-        this.savedCode = null;
-    }
+    }, 500);
 }
 
-// אתחול האפליקציה
-document.addEventListener('DOMContentLoaded', () => {
-    window.tabLockerRemote = new TabLockerRemote();
-});
-    </script>
-</body>
-</html>
+// בנוסף, נוסיף פונקציה לביטול נעילה ספציפית:
+showUnlockSpecificDialog() {
+    // קבל רשימת טאבים נעולים
+    this.sendCommand({ action: 'GET_LOCKED_TABS' });
+    
+    setTimeout(() => {
+        const url = prompt(
+            'הזן את ה-URL או הדומיין שברצונך לבטל את נעילתו:\n' +
+            '(השאר ריק כדי לבטל)'
+        );
+        
+        if (url && url.trim()) {
+            this.sendCommand({
+                action: 'UNLOCK_SPECIFIC',
+                key: url.trim()
+            });
+        }
+    }, 3000); // המתן לקבלת הרשימה
+}

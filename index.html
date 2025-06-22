@@ -177,6 +177,14 @@
             >
             <button class="connect-btn" id="connect-btn">🔌 התחבר למכשיר</button>
             
+            <div style="text-align: center; margin: 15px 0; color: rgba(255,255,255,0.7); font-size: 14px;">
+                או
+            </div>
+            
+            <button class="connect-btn" id="gmail-connect-btn" style="background: linear-gradient(135deg, #4285f4, #34a853);">
+                📧 התחבר דרך Gmail
+            </button>
+            
             <div class="device-status disconnected" id="device-status">
                 ❌ לא מחובר למכשיר
             </div>
@@ -237,6 +245,11 @@ class TabLockerRemote {
         // כפתור התחברות
         document.getElementById('connect-btn').addEventListener('click', () => {
             this.connectToDevice();
+        });
+
+        // כפתור התחברות דרך Gmail
+        document.getElementById('gmail-connect-btn').addEventListener('click', () => {
+            this.connectViaGmail();
         });
 
         // שדה קוד - התחבר באנטר
@@ -322,6 +335,56 @@ class TabLockerRemote {
     // שמירת קוד (במשתנה במקום localStorage)
     saveCode(code) {
         this.savedCode = code;
+    }
+
+    // התחברות דרך Gmail
+    async connectViaGmail() {
+        const email = prompt('הזן את כתובת הגימייל שלך:');
+        if (!email) return;
+
+        this.updateDeviceStatus('מחפש מכשיר לפי גימייל...', 'connecting');
+        this.updateConnectionButtons(false);
+
+        try {
+            const response = await fetch(`${this.apiUrl}/find-device-by-email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.found) {
+                // התחברות מוצלחת
+                this.connectedDevice = result.device;
+                this.deviceCode = result.device.code;
+                this.isConnected = true;
+                this.saveCode(this.deviceCode);
+                
+                // עדכן את השדה עם הקוד שנמצא
+                document.getElementById('device-code-input').value = this.deviceCode;
+                
+                this.updateDeviceStatus(`✅ מחובר למכשיר ${this.deviceCode} (${email})`, 'connected');
+                this.updateConnectionButtons(true);
+                this.showResponse(`התחברות מוצלחת למכשיר ${this.deviceCode} דרך ${email}`);
+                
+                // עדכן גם את סטטוס השרת
+                document.getElementById('connection-status').innerHTML = '✅ מחובר לשרת';
+                
+                // התחל לקבל תגובות
+                this.startResponsePolling();
+                
+            } else {
+                // מכשיר לא נמצא
+                this.updateDeviceStatus('❌ לא נמצא מכשיר המקושר לגימייל זה', 'disconnected');
+                alert(`לא נמצא מכשיר המקושר לכתובת ${email}.\nודא שהתוסף פועל ומקושר לחשבון הזה.`);
+            }
+
+        } catch (error) {
+            console.error('Gmail connection error:', error);
+            this.updateDeviceStatus('❌ שגיאת חיבור', 'disconnected');
+            alert('שגיאה בחיבור לשרת');
+        }
     }
 
     // התחברות למכשיר - תיקון שם הפרמטר
@@ -474,12 +537,26 @@ class TabLockerRemote {
                     if (responses.length > 0) {
                         // הצג את התגובה האחרונה
                         const latest = responses[0];
+                        console.log('Latest response:', latest);
+                        
                         if (latest.status === 'pong') {
                             this.showResponse('🟢 המכשיר מגיב - החיבור תקין');
                         } else if (latest.status === 'success') {
                             this.showResponse(`✅ פעולה הושלמה בהצלחה`);
                             if (latest.data) {
-                                this.showResponse(`📊 נתונים: ${JSON.stringify(latest.data)}`);
+                                console.log('Response data:', latest.data);
+                                // בדוק אם זה מידע על טאבים נעולים
+                                if (latest.data.action === 'locked_tabs_info') {
+                                    console.log('Showing locked tabs modal with:', latest.data.lockedTabs);
+                                    this.showLockedTabsModal(latest.data.lockedTabs);
+                                } else if (latest.data.action === 'current_tabs') {
+                                    this.showCurrentTabsModal(latest.data.tabs);
+                                } else {
+                                    this.showResponse(`📊 פעולה: ${latest.data.action}`);
+                                    if (latest.data.count !== undefined) {
+                                        this.showResponse(`📈 מספר: ${latest.data.count}`);
+                                    }
+                                }
                             }
                         } else if (latest.status === 'error') {
                             this.showResponse(`❌ שגיאה במכשיר: ${latest.message || 'לא ידוע'}`);
@@ -490,6 +567,407 @@ class TabLockerRemote {
                 console.warn('Response polling error:', error);
             }
         }, 3000); // כל 3 שניות
+    }
+
+    // הצגת מודל עם טאבים נעולים - ממשק משופר
+    showLockedTabsModal(lockedTabs) {
+        // הסר מודל קיים אם יש
+        const existingModal = document.getElementById('locked-tabs-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        if (!lockedTabs || lockedTabs.length === 0) {
+            alert('אין טאבים נעולים כרגע');
+            return;
+        }
+
+        const modal = document.createElement('div');
+        modal.id = 'locked-tabs-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            backdrop-filter: blur(5px);
+        `;
+
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 0;
+            width: 95%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow: hidden;
+            color: white;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        `;
+
+        // כותרת
+        const header = document.createElement('div');
+        header.style.cssText = `
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        `;
+        header.innerHTML = `
+            <div>
+                <h2 style="margin: 0; font-size: 24px;">🔒 טאבים נעולים</h2>
+                <p style="margin: 5px 0 0 0; opacity: 0.8; font-size: 14px;">${lockedTabs.length} טאבים נעולים</p>
+            </div>
+            <button id="close-modal" style="background: rgba(255, 255, 255, 0.2); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; transition: all 0.3s;">×</button>
+        `;
+
+        // כפתורי פעולה עליונים
+        const actions = document.createElement('div');
+        actions.style.cssText = `
+            padding: 20px 30px 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        `;
+        actions.innerHTML = `
+            <button id="select-all" style="background: rgba(255, 255, 255, 0.2); color: white; border: none; border-radius: 8px; padding: 10px 15px; cursor: pointer; font-size: 14px;">✅ בחר הכל</button>
+            <button id="unselect-all" style="background: rgba(255, 255, 255, 0.2); color: white; border: none; border-radius: 8px; padding: 10px 15px; cursor: pointer; font-size: 14px;">❌ בטל בחירה</button>
+            <button id="unlock-selected" style="background: #f44336; color: white; border: none; border-radius: 8px; padding: 10px 15px; cursor: pointer; font-size: 14px; font-weight: bold;" disabled>🔓 בטל נעילה לנבחרים</button>
+        `;
+
+        // רשימת טאבים
+        const tabsList = document.createElement('div');
+        tabsList.style.cssText = `
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 0 30px 20px;
+        `;
+
+        let tabsHtml = '';
+        lockedTabs.forEach((tab, index) => {
+            const typeIcon = tab.type === 'domain' ? '🌐' : '📄';
+            const displayUrl = tab.displayName.length > 40 ? tab.displayName.substring(0, 40) + '...' : tab.displayName;
+            
+            tabsHtml += `
+                <div class="tab-item" data-key="${tab.key}" style="
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    padding: 15px;
+                    margin-bottom: 10px;
+                    border: 2px solid transparent;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    position: relative;
+                ">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <input type="checkbox" class="tab-checkbox" data-key="${tab.key}" style="
+                            width: 18px;
+                            height: 18px;
+                            cursor: pointer;
+                            accent-color: #4CAF50;
+                        ">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px;">
+                                ${typeIcon} ${displayUrl}
+                            </div>
+                            <div style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">
+                                ${tab.key}
+                            </div>
+                            <div style="display: flex; gap: 15px; font-size: 11px;">
+                                <span style="background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 15px;">
+                                    ${tab.createdRemotely ? '🔗 מרחוק' : '💻 מקומי'}
+                                </span>
+                                ${tab.autoLock ? '<span style="background: rgba(255,193,7,0.3); padding: 3px 8px; border-radius: 15px;">🕒 אוטומטי</span>' : ''}
+                                ${tab.hasRecovery ? '<span style="background: rgba(76,175,80,0.3); padding: 3px 8px; border-radius: 15px;">🔑 שחזור</span>' : ''}
+                            </div>
+                        </div>
+                        <button class="unlock-single" data-key="${tab.key}" style="
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            padding: 8px 12px;
+                            cursor: pointer;
+                            font-size: 12px;
+                            min-width: 80px;
+                        ">🔓 בטל</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        tabsList.innerHTML = tabsHtml;
+
+        // כפתור בטל הכל
+        const footer = document.createElement('div');
+        footer.style.cssText = `
+            padding: 20px 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        `;
+        footer.innerHTML = `
+            <button id="unlock-all-confirm" style="
+                background: linear-gradient(135deg, #ff6b35, #f44336);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                padding: 15px 30px;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: bold;
+                width: 100%;
+            ">🔓 בטל את כל הנעילות (${lockedTabs.length})</button>
+        `;
+
+        // הרכבת המודל
+        modalContent.appendChild(header);
+        modalContent.appendChild(actions);
+        modalContent.appendChild(tabsList);
+        modalContent.appendChild(footer);
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+
+        // Event listeners
+        this.setupLockedTabsModalEvents(modal);
+    }
+
+    // הגדרת אירועים למודל טאבים נעולים
+    setupLockedTabsModalEvents(modal) {
+        const checkboxes = modal.querySelectorAll('.tab-checkbox');
+        const unlockSelectedBtn = modal.querySelector('#unlock-selected');
+        
+        // סגירת מודל
+        modal.querySelector('#close-modal').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+
+        // בחירת הכל
+        modal.querySelector('#select-all').addEventListener('click', () => {
+            checkboxes.forEach(cb => cb.checked = true);
+            this.updateUnlockSelectedButton(modal);
+        });
+
+        // ביטול בחירה
+        modal.querySelector('#unselect-all').addEventListener('click', () => {
+            checkboxes.forEach(cb => cb.checked = false);
+            this.updateUnlockSelectedButton(modal);
+        });
+
+        // עדכון כפתור בעת שינוי בחירה
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', () => this.updateUnlockSelectedButton(modal));
+        });
+
+        // לחיצה על טאב לבחירה
+        modal.querySelectorAll('.tab-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (e.target.type !== 'checkbox' && !e.target.classList.contains('unlock-single')) {
+                    const checkbox = item.querySelector('.tab-checkbox');
+                    checkbox.checked = !checkbox.checked;
+                    this.updateUnlockSelectedButton(modal);
+                }
+            });
+        });
+
+        // ביטול נעילה לנבחרים
+        unlockSelectedBtn.addEventListener('click', () => {
+            const selected = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.dataset.key);
+            if (selected.length > 0) {
+                this.unlockMultipleTabs(selected, modal);
+            }
+        });
+
+        // ביטול נעילה יחיד
+        modal.querySelectorAll('.unlock-single').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.unlockSpecificTab(btn.dataset.key);
+                modal.remove();
+            });
+        });
+
+        // ביטול כל הנעילות
+        modal.querySelector('#unlock-all-confirm').addEventListener('click', () => {
+            this.unlockAllTabsConfirm();
+            modal.remove();
+        });
+    }
+
+    // עדכון כפתור ביטול נעילה לנבחרים
+    updateUnlockSelectedButton(modal) {
+        const checkboxes = modal.querySelectorAll('.tab-checkbox');
+        const selected = Array.from(checkboxes).filter(cb => cb.checked);
+        const unlockBtn = modal.querySelector('#unlock-selected');
+        
+        if (selected.length > 0) {
+            unlockBtn.disabled = false;
+            unlockBtn.textContent = `🔓 בטל נעילה ל-${selected.length} טאבים`;
+            unlockBtn.style.background = '#f44336';
+        } else {
+            unlockBtn.disabled = true;
+            unlockBtn.textContent = '🔓 בטל נעילה לנבחרים';
+            unlockBtn.style.background = '#666';
+        }
+    }
+
+    // ביטול נעילה למספר טאבים
+    unlockMultipleTabs(selectedKeys, modal) {
+        if (confirm(`האם אתה בטוח שברצונך לבטל את הנעילה של ${selectedKeys.length} טאבים?`)) {
+            selectedKeys.forEach(key => {
+                this.sendCommand({
+                    action: 'UNLOCK_SPECIFIC_TAB',
+                    lockKey: key
+                });
+            });
+            modal.remove();
+        }
+    }
+
+    // הצגת טאבים פתוחים
+    showCurrentTabsModal(tabs) {
+        // הסר מודל קיים אם יש
+        const existingModal = document.getElementById('current-tabs-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        if (!tabs || tabs.length === 0) {
+            alert('אין טאבים פתוחים כרגע');
+            return;
+        }
+
+        const modal = document.createElement('div');
+        modal.id = 'current-tabs-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            backdrop-filter: blur(5px);
+        `;
+
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            border-radius: 20px;
+            padding: 0;
+            width: 95%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow: hidden;
+            color: white;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        `;
+
+        // כותרת
+        const header = document.createElement('div');
+        header.style.cssText = `
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        `;
+        header.innerHTML = `
+            <div>
+                <h2 style="margin: 0; font-size: 24px;">📱 טאבים פתוחים</h2>
+                <p style="margin: 5px 0 0 0; opacity: 0.8; font-size: 14px;">${tabs.length} טאבים פתוחים</p>
+            </div>
+            <button id="close-current-modal" style="background: rgba(255, 255, 255, 0.2); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; transition: all 0.3s;">×</button>
+        `;
+
+        // רשימת טאבים
+        const tabsList = document.createElement('div');
+        tabsList.style.cssText = `
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 20px 30px;
+        `;
+
+        let tabsHtml = '';
+        tabs.forEach((tab, index) => {
+            const title = tab.title.length > 50 ? tab.title.substring(0, 50) + '...' : tab.title;
+            const url = tab.url.length > 60 ? tab.url.substring(0, 60) + '...' : tab.url;
+            
+            tabsHtml += `
+                <div style="
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    padding: 15px;
+                    margin-bottom: 10px;
+                    border: 2px solid transparent;
+                    transition: all 0.3s;
+                ">
+                    <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px;">
+                        📄 ${title}
+                    </div>
+                    <div style="font-size: 12px; opacity: 0.8; word-break: break-all;">
+                        ${url}
+                    </div>
+                </div>
+            `;
+        });
+
+        tabsList.innerHTML = tabsHtml;
+
+        // הרכבת המודל
+        modalContent.appendChild(header);
+        modalContent.appendChild(tabsList);
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+
+        // סגירת מודל
+        modal.querySelector('#close-current-modal').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+    }
+
+    // ביטול נעילה של טאב ספציפי
+    unlockSpecificTab(lockKey) {
+        if (confirm(`האם אתה בטוח שברצונך לבטל את הנעילה של:\n${lockKey}`)) {
+            this.sendCommand({
+                action: 'UNLOCK_SPECIFIC_TAB',
+                lockKey: lockKey
+            });
+            
+            // סגור את המודל
+            const modal = document.getElementById('locked-tabs-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+    }
+
+    // ביטול כל הנעילות עם אישור
+    unlockAllTabsConfirm() {
+        if (confirm('האם אתה בטוח שברצונך לבטל את כל הנעילות?')) {
+            this.sendCommand({ action: 'UNLOCK_ALL_TABS' });
+            
+            // סגור את המודל
+            const modal = document.getElementById('locked-tabs-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
     }
 
     // הצגת תגובה

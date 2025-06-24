@@ -221,6 +221,7 @@
 class TabLockerRemote {
     constructor() {
         this.apiUrl = 'https://api.azriasolutions.com/api';
+        this.baseUrl = 'https://api.azriasolutions.com'; // ✅ URL בסיס נפרד
         this.connectedDevice = null;
         this.deviceCode = null;
         this.isConnected = false;
@@ -278,13 +279,14 @@ class TabLockerRemote {
         });
     }
 
-    // בדיקת חיבור לשרת
+    // בדיקת חיבור לשרת - תיקון כפילות URL
     async checkServerConnection() {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
             
-            const response = await fetch(`${this.apiUrl.replace('/api', '')}/health`, {
+            // ✅ שימוש ב-baseUrl במקום replace
+            const response = await fetch(`${this.baseUrl}/health`, {
                 signal: controller.signal
             });
             
@@ -308,7 +310,8 @@ class TabLockerRemote {
 
     async recheckServerConnection() {
         try {
-            const response = await fetch(`${this.apiUrl.replace('/api', '')}/health`);
+            // ✅ שימוש ב-baseUrl במקום replace
+            const response = await fetch(`${this.baseUrl}/health`);
             if (response.ok) {
                 document.getElementById('connection-status').innerHTML = '✅ מחובר לשרת';
             }

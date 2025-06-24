@@ -4,13 +4,15 @@ class TabLockerRemote {
         this.connectedDevice = null;
         this.deviceCode = null;
         this.isConnected = false;
+        // החלפת localStorage במשתנה זיכרון
+        this.savedCode = null;
         this.initializeApp();
     }
 
     async initializeApp() {
         this.setupEventListeners();
         await this.checkServerConnection();
-        this.loadSavedCode();
+        // הסרת loadSavedCode() כי אין localStorage
     }
 
     setupEventListeners() {
@@ -99,20 +101,12 @@ class TabLockerRemote {
         }
     }
 
-    // טעינת קוד שמור
-    loadSavedCode() {
-        const savedCode = localStorage.getItem('tablocker_device_code');
-        if (savedCode) {
-            document.getElementById('device-code-input').value = savedCode;
-        }
-    }
-
-    // שמירת קוד
+    // שמירת קוד (במשתנה במקום localStorage)
     saveCode(code) {
-        localStorage.setItem('tablocker_device_code', code);
+        this.savedCode = code;
     }
 
-    // התחברות למכשיר
+    // התחברות למכשיר - תיקון שם הפרמטר
     async connectToDevice() {
         const codeInput = document.getElementById('device-code-input');
         const code = codeInput.value.trim().toUpperCase();
@@ -131,7 +125,7 @@ class TabLockerRemote {
             const response = await fetch(`${this.apiUrl}/find-device`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ deviceCode: code })
+                body: JSON.stringify({ deviceCode: code }) // תיקון שם הפרמטר
             });
 
             const result = await response.json();
@@ -189,7 +183,7 @@ class TabLockerRemote {
         });
     }
 
-    // שליחת פקודה
+    // שליחת פקודה - תיקון שם הפרמטר
     async sendCommand(command) {
         if (!this.isConnected || !this.deviceCode) {
             alert('יש להתחבר למכשיר תחילה');
@@ -203,7 +197,7 @@ class TabLockerRemote {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    deviceCode: this.deviceCode,
+                    deviceCode: this.deviceCode, // תיקון שם הפרמטר
                     command: command
                 })
             });
@@ -322,7 +316,8 @@ class TabLockerRemote {
         
         // נקה את השדה
         document.getElementById('device-code-input').value = '';
-        localStorage.removeItem('tablocker_device_code');
+        // הסרת localStorage
+        this.savedCode = null;
     }
 }
 

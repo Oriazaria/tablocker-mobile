@@ -471,16 +471,20 @@ class TabLockerRemote {
                         const latest = responses[0];
                         console.log('📨 Latest response:', latest);
                         
-                        if (latest.status === 'pong') {
+                        if (latest.status === 'success' && latest.message === 'pong') {
                             this.showResponse('🟢 המכשיר מגיב - החיבור תקין');
                         } else if (latest.status === 'success') {
-                            this.showResponse(`✅ פעולה הושלמה בהצלחה`);
+                            this.showResponse(`✅ ${latest.message || 'פעולה הושלמה בהצלחה'}`);
                             if (latest.data) {
                                 if (latest.data.action === 'locked_tabs_info') {
                                     console.log('📋 Showing locked tabs:', latest.data.lockedTabs);
                                     this.showLockedTabs(latest.data.lockedTabs);
                                 } else if (latest.data.action === 'current_tabs') {
                                     this.showResponse(`📱 נמצאו ${latest.data.count} טאבים פתוחים`);
+                                } else if (latest.data.action === 'unlock_all') {
+                                    this.showResponse(`🔓 הוסרו ${latest.data.removedCount} נעילות, רוענן ${latest.data.reloadedCount} טאבים`);
+                                } else if (latest.data.action === 'manual_lock') {
+                                    this.showResponse(`🔒 דומיין נעול: ${latest.data.lockedUrl} (${latest.data.affectedTabs} טאבים)`);
                                 } else {
                                     this.showResponse(`📊 ${latest.data.action}: ${latest.data.count || 'הושלם'}`);
                                 }
@@ -496,7 +500,7 @@ class TabLockerRemote {
         }, 3000);
     }
 
-    // הצגת טאבים נעולים
+    // הצגת טאבים נעולים - תיקון מושלם
     showLockedTabs(lockedTabs) {
         console.log('📋 Showing locked tabs:', lockedTabs);
         
@@ -524,16 +528,20 @@ class TabLockerRemote {
             const type = tab.type === 'domain' ? '🌐' : '📄';
             const hasRecovery = tab.hasRecovery ? '✅' : '❌';
             const autoLock = tab.autoLock ? '⏰' : '🔒';
+            const remoteCreated = tab.createdRemotely ? '📱' : '💻';
             
             const shortName = displayName.length > 35 ? 
                 displayName.substring(0, 32) + '...' : displayName;
             
             this.showResponse(`${index + 1}. ${type} ${shortName}`);
-            this.showResponse(`   ${autoLock} אוטומטי | ${hasRecovery} שחזור`);
+            this.showResponse(`   ${autoLock} ${remoteCreated} | שחזור: ${hasRecovery}`);
             this.showResponse('');
         });
         
         this.showResponse('─'.repeat(40));
+        this.showResponse('🌐 = דומיין | 📄 = עמוד ספציפי');
+        this.showResponse('⏰ = נעילה אוטומטית | 🔒 = נעילה רגילה'); 
+        this.showResponse('📱 = נוצר מרחוק | 💻 = נוצר מקומית');
         
         // הצע אפשרויות פעולה
         setTimeout(() => {
